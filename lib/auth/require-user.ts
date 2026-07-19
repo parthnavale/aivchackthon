@@ -1,0 +1,28 @@
+import { redirect } from "next/navigation";
+import { cache } from "react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+}
+
+export const requireUser = cache(async (): Promise<AuthenticatedUser> => {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user?.id) {
+    redirect("/login");
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    fullName: (user.user_metadata?.full_name as string | undefined) ?? null,
+  };
+});

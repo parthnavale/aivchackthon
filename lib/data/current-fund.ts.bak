@@ -1,0 +1,38 @@
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentOrganization } from "./current-organization";
+
+export interface CurrentFund {
+  id: string;
+  name: string;
+  slug: string | null;
+}
+
+export async function getCurrentFund(): Promise<CurrentFund | null> {
+  const organization = await getCurrentOrganization();
+  const supabase = await createSupabaseServerClient();
+
+  const result = await (supabase as any)
+    .from("funds")
+    .select("id, name, slug")
+    .eq("organization_id", organization.id)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = result;
+
+  if (error) {
+    throw new Error(`Unable to resolve the active fund: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: data.name ?? "Untitled fund",
+    slug: data.slug ?? null,
+  };
+}

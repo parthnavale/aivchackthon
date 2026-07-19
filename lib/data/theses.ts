@@ -1,0 +1,172 @@
+import { revalidatePath } from "next/cache";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentOrganization } from "./current-organization";
+import { getCurrentFund } from "./current-fund";
+import { mapThesisRow, type ThesisView } from "@/lib/mappers/thesis-mapper";
+
+export interface ThesisConfirmationView {
+  thesis: ThesisView | null;
+}
+
+export async function getActiveThesis(): Promise<ThesisConfirmationView> {
+  const organization = await getCurrentOrganization();
+  const fund = await getCurrentFund();
+
+  if (!fund) {
+    return { thesis: null };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("fund_theses")
+    .select("id, name, sectors, stages, geographies, founder_patterns, dealbreakers, style_anchors, updated_at, is_active")
+    .eq("organization_id", organization.id)
+    .eq("fund_id", fund.id)
+    .eq("is_active", true)
+    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Unable to load the current thesis: ${error.message}`);
+  }
+
+  return {
+    thesis: data ? mapThesisRow(data) : null,
+  };
+}
+
+export async function updateActiveThesis(input: {
+  title: string;
+  sectors: string[];
+  stages: string[];
+  geographies: string[];
+  founderPatterns: string[];
+  dealbreakers: string[];
+  styleAnchors: string[];
+}) {
+  const organization = await getCurrentOrganization();
+  const fund = await getCurrentFund();
+  if (!fund) {
+    throw new Error("No active fund is available for this organization.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const result = await supabase
+    .from("fund_theses")
+    .select("id, name, sectors, stages, geographies, founder_patterns, dealbreakers, style_anchors, updated_at, is_active")
+    .eq("organization_id", organization.id)
+    .eq("fund_id", fund.id)
+    .eq("is_active", true)
+    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: existing, error: fetchError } = result;
+
+  if (fetchError) {
+    throw new Error(`Unable to find the active thesis: ${fetchError.message}`);
+  }
+
+  if (!existing?.id) {
+    throw new Error("No active thesis exists to update.");
+  }
+
+  const { error } = await supabase
+    .from("fund_theses")
+    .update({
+      name: input.title,
+      sectors: input.sectors.filter(Boolean),
+      stages: input.stages.filter(Boolean),
+      geographies: input.geographies.filter(Boolean),
+      founder_patterns: input.founderPatterns.filter(Boolean),
+      dealbreakers: input.dealbreakers.filter(Boolean),
+      style_anchors: input.styleAnchors.filter(Boolean),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id)
+    .eq("organization_id", organization.id);
+
+  if (error) {
+    throw new Error(`Unable to update the thesis: ${error.message}`);
+  }
+
+  revalidatePath("/thesis-confirmation");
+  return true;
+}
+
+export async function confirmActiveThesisAndQueueSourcing() {
+  const organization = await getCurrentOrganization();
+  const fund = await getCurrentFund();
+  if (!fund) {
+    throw new Error("No active fund is available for this organization.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const result = await supabase
+    .from("fund_theses")
+    .select("id")
+    .eq("organization_id", organization.id)
+    .eq("fund_id", fund.id)
+    .eq("is_active", true)
+    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: thesis, error: thesisError } = result;
+
+  if (thesisError) {
+    throw new Error(`Unable to load the thesis to confirm: ${thesisError.message}`);
+  }
+
+  if (!thesis?.id) {
+    throw new Error("No active thesis exists to confirm.");
+  }
+
+  await supabase
+    .from("fund_theses")
+    .update({
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", thesis.id);
+
+  const discoveryPayload = {
+    organization_id: organization.id,
+    fund_id: fund.id,
+    thesis_id: thesis.id,
+    status: "confirmed",
+    confirmed_thesis_id: thesis.id,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error: discoveryError } = await supabase
+    .from("thesis_discovery_sessions")
+    .upsert(discoveryPayload as never, {
+      onConflict: "organization_id,fund_id,thesis_id",
+    });
+
+  if (discoveryError) {
+    throw new Error(`Unable to update the discovery session: ${discoveryError.message}`);
+  }
+
+  const { error: workflowError } = await supabase.from("workflow_runs").insert({
+    organization_id: organization.id,
+    workflow_name: "founder_sourcing",
+    status: "queued",
+    current_step: "sourcing",
+    input_payload: { fund_id: fund.id, thesis_id: thesis.id },
+  });
+
+  if (workflowError) {
+    throw new Error(`Unable to create the sourcing workflow: ${workflowError.message}`);
+  }
+
+  revalidatePath("/thesis-confirmation");
+  revalidatePath("/sourcing-dashboard");
+  return true;
+}

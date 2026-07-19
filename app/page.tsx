@@ -1,65 +1,117 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { dashboardNavigation } from "@/lib/vc-brain-data";
+
+export const metadata: Metadata = {
+  title: "VC Brain",
+  description: "VC Brain landing page with navigation to onboarding, pipeline, and auth routes.",
+};
+
+const featuredLinks = [
+  { label: "Login", href: "/login", tone: "border-[#e0aa42]/35 bg-[#e0aa42]/12 text-[#f1c66d]" },
+  { label: "Sign up", href: "/signup", tone: "border-[#273348] bg-[#192334] text-[#f4f1eb]" },
+  { label: "Thesis confirmation", href: "/thesis-confirmation", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" },
+] as const;
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            Hello World
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-[#090f18] text-[#f4f1eb]">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div
+          className="rounded-[28px] border border-[#273348] p-6 shadow-2xl shadow-black/20 lg:p-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle_at_top_left,rgba(224,170,66,0.14),transparent_35%),linear-gradient(180deg,#111925,#0b121c)",
+          }}
+        >
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#273348] bg-[#111925] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8ca2c8]">
+                VC Brain platform
+              </div>
+              <h1 className="text-4xl leading-tight sm:text-5xl" style={{ fontFamily: "Georgia, serif" }}>
+                Invest with a clearer thesis, tighter routing, and one place for every decision.
+              </h1>
+              <p className="max-w-2xl text-sm leading-7 text-[#c6d3ea] sm:text-base">
+                This landing page links every area of the VC Brain app: onboarding, pipeline, search, founder ledger,
+                memo, decision log, and account access.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Link
+                href="/thesis-confirmation"
+                className="inline-flex items-center justify-center rounded-full bg-[#e0aa42] px-5 py-3 text-sm font-semibold text-[#090f18] transition hover:brightness-110"
+              >
+                Open dashboard
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-full border border-[#273348] bg-[#111925] px-5 py-3 text-sm font-semibold text-[#f4f1eb] transition hover:bg-white/5"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center rounded-full border border-[#273348] bg-transparent px-5 py-3 text-sm font-semibold text-[#8ca2c8] transition hover:border-[#e0aa42]/50 hover:text-[#f4f1eb]"
+              >
+                Sign up
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-39.5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/8 px-5 transition-colors hover:border-transparent hover:bg-black/4 dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-39.5"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {featuredLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`rounded-[18px] border px-5 py-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 ${item.tone}`}
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8ca2c8]">
+                Quick access
+              </div>
+              <div className="mt-3 text-xl" style={{ fontFamily: "Georgia, serif" }}>
+                {item.label}
+              </div>
+              <div className="mt-2 text-sm text-[#8ca2c8]">Open this route directly.</div>
+            </Link>
+          ))}
         </div>
-      </main>
-    </div>
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          {dashboardNavigation.map((section) => (
+            <section key={section.label} className="rounded-[20px] border border-[#273348] bg-[#111925] p-5">
+              <div className="flex items-center justify-between gap-4 border-b border-[#273348] pb-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8ca2c8]">{section.label}</p>
+                  <h2 className="mt-1 text-xl" style={{ fontFamily: "Georgia, serif" }}>
+                    Navigate to {section.label.toLowerCase()}
+                  </h2>
+                </div>
+                <span className="rounded-full border border-[#273348] bg-[#192334] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8ca2c8]">
+                  {section.items.length} pages
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {section.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-2xl border border-[#273348] bg-[#192334] px-4 py-4 transition hover:border-[#e0aa42]/40 hover:bg-[#1b2737]"
+                  >
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8ca2c8]">
+                      {section.label}
+                    </div>
+                    <div className="mt-2 text-base text-[#f4f1eb]">{item.label}</div>
+                    <div className="mt-2 text-sm text-[#8ca2c8]">Open {item.label.toLowerCase()}.</div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

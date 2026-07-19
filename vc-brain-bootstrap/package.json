@@ -1,0 +1,15 @@
+{
+  "name": "vc-brain-bootstrap",
+  "version": "1.0.0",
+  "description": "This bundle installs the complete VC Brain database into an existing hosted Supabase project.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "supabase": "^2.109.1"
+  }
+}
