@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { dashboardNavigation } from "@/lib/vc-brain-data";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 const cn = (...classes: Array<string | false | undefined | null>) =>
   classes.filter(Boolean).join(" ");
@@ -78,6 +79,9 @@ export function PageHeader({
         <p className="mt-3 max-w-2xl text-sm leading-6 text-[#8ca2c8]">{description}</p>
       </div>
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        <div className="flex items-center gap-3">
+  <LogoutButton />
+</div>
     </div>
   );
 }

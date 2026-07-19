@@ -39,12 +39,12 @@ export default function Home() {
             </div>
 
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link
+              {/* <Link
                 href="/thesis-confirmation"
                 className="inline-flex items-center justify-center rounded-full bg-[#e0aa42] px-5 py-3 text-sm font-semibold text-[#090f18] transition hover:brightness-110"
               >
                 Open dashboard
-              </Link>
+              </Link> */}
               <Link
                 href="/login"
                 className="inline-flex items-center justify-center rounded-full border border-[#273348] bg-[#111925] px-5 py-3 text-sm font-semibold text-[#f4f1eb] transition hover:bg-white/5"
